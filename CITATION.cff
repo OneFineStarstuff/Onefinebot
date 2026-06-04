@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Starstuff"
+  given-names: "One Fine"
+title: "STEM AI & Physics Simulations"
+version: 1.0.0
+date-released: 2024-01-01
+url: "https://github.com/onefinestarstuff/stem-ai-physics"
