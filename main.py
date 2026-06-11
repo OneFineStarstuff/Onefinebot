@@ -1,4 +1,5 @@
 import hashlib
+import os
 
 class FairnessValidator:
     @staticmethod
@@ -9,19 +10,20 @@ class FairnessValidator:
             indices = [i for i, x in enumerate(sensitive_attributes) if x == g]
             group_assignments = [expert_assignments[i] for i in indices]
             num_samples = len(group_assignments)
+            if num_samples == 0: continue
             num_experts = len(group_assignments[0])
             probs = [sum(row[j] for row in group_assignments) / num_samples for j in range(num_experts)]
             group_expert_probs.append(probs)
         dpd = 0
-        for i in range(len(groups)):
-            for j in range(i + 1, len(groups)):
+        for i in range(len(group_expert_probs)):
+            for j in range(i + 1, len(group_expert_probs)):
                 diffs = [abs(group_expert_probs[i][k] - group_expert_probs[j][k]) for k in range(len(group_expert_probs[0]))]
                 dpd = max(dpd, max(diffs))
         return dpd
 
 class ZKFairnessProof:
-    def __init__(self, secret_salt="omni-sentinel-salt"):
-        self.secret_salt = secret_salt
+    def __init__(self, secret_salt=None):
+        self.secret_salt = secret_salt or os.getenv("OMNI_SENTINEL_SALT", "default_safe_salt_placeholder")
     def generate_proof(self, expert_weights, fairness_score):
         weight_hash = hashlib.sha256(str(expert_weights).encode() + self.secret_salt.encode()).hexdigest()
         is_compliant = fairness_score < 0.1
@@ -67,20 +69,17 @@ class AGISystemSTEM:
         self.zk_prover = ZKFairnessProof()
     def process_request(self, data, sensitive_attributes=None):
         print("Processing request through MoE architecture...")
-        # Mock random assignments
         import random
         expert_assignments = []
         for _ in range(len(data)):
             row = [random.random() for _ in range(4)]
             s = sum(row)
             expert_assignments.append([x/s for x in row])
-
         if sensitive_attributes is not None:
             dpd = FairnessValidator.calculate_demographic_parity(expert_assignments, sensitive_attributes)
             proof = self.zk_prover.generate_proof(expert_assignments, dpd)
             print(f"MAS FEAT Compliance: Demographic Parity Difference = {dpd:.4f}")
             print(f"ZK-Fairness Proof Generated: {proof['commitment'][:16]}...")
-
         attributions = [random.uniform(-1, 1) for _ in range(5)]
         feature_names = ["income", "credit_score", "age", "location", "transaction_amount"]
         report = self.asa.generate_stakeholder_report(attributions, feature_names)
