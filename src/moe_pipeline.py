@@ -12,17 +12,25 @@ class MoEPipeline:
         self.cae = ContextualAttributionEnvelope()
         self.asa = ASAInterpretabilityLayer(self.cae)
 
-    def process_data(self, data, sensitive_attributes=None):
+    def process_data(self, data, sensitive_attributes=None, override_assignments=None):
         """
         Processes data through experts and performs governance audit.
+
+        Args:
+            data (list): Input data.
+            sensitive_attributes (list, optional): Sensitive attributes for fairness calculation.
+            override_assignments (list, optional): Manual expert assignments (HITL override).
         """
-        # Simulate expert assignments
+        # Simulate or use override expert assignments
         num_experts = 4
-        expert_assignments = []
-        for _ in range(len(data)):
-            row = [random.random() for _ in range(num_experts)]
-            s = sum(row)
-            expert_assignments.append([x/s for x in row])
+        if override_assignments:
+            expert_assignments = override_assignments
+        else:
+            expert_assignments = []
+            for _ in range(len(data)):
+                row = [random.random() for _ in range(num_experts)]
+                s = sum(row)
+                expert_assignments.append([x/s for x in row])
 
         # Calculate fairness
         dpd = 0
