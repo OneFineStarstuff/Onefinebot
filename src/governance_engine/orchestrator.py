@@ -1,6 +1,7 @@
 from .gsri_engine import GSRIEngine
 from .gamma_protocol import GammaProtocol
 from .worm_logger import PQCWORMLogger
+from .maturity_engine import EthicsMaturityEngine
 import sys
 import os
 
@@ -17,8 +18,9 @@ class GovernanceOrchestrator:
         self.gamma = GammaProtocol()
         self.worm = PQCWORMLogger()
         self.zk_fairness = ZKFairnessProof()
+        self.maturity = EthicsMaturityEngine()
 
-    def perform_audit(self, expert_weights, fairness_score):
+    def perform_audit(self, expert_weights, fairness_score, has_cae=True):
         """
         Executes a full governance audit cycle.
         """
@@ -32,12 +34,21 @@ class GovernanceOrchestrator:
         # 3. ZK-Fairness Proof
         proof = self.zk_fairness.generate_proof(expert_weights, fairness_score)
 
-        # 4. WORM Logging
+        # 4. Ethics Maturity Scoring
+        # For simplicity, we assume audit_committed will be True after this audit is logged.
+        maturity_score = self.maturity.calculate_score(
+            dpd=fairness_score,
+            has_cae=has_cae,
+            audit_committed=True
+        )
+
+        # 5. WORM Logging
         audit_data = {
             "gsri_score": score,
             "system_status": status,
             "heartbeat": heartbeat,
-            "fairness_proof": proof
+            "fairness_proof": proof,
+            "ethics_maturity_score": maturity_score
         }
         self.worm.log_event("GOVERNANCE_AUDIT", audit_data)
 

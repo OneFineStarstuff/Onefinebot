@@ -54,11 +54,16 @@ class ZKFairnessProof:
         }
         return proof
 
-    def verify(self, proof):
+    def verify(self, proof, expert_weights=None):
         """
-        Verifies the proof.
+        Verifies the proof. If expert_weights is provided, validates data integrity.
         """
         if not proof.get("is_compliant"):
             return False, "Proof indicates non-compliance with fairness threshold."
+
+        if expert_weights is not None:
+            expected_hash = hashlib.sha256(str(expert_weights).encode() + self.secret_salt.encode()).hexdigest()
+            if expected_hash != proof.get("commitment"):
+                return False, "Data integrity failure: Expert weights do not match the commitment."
 
         return True, "Fairness proof verified successfully."
