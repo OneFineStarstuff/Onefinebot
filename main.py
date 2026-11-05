@@ -22,7 +22,10 @@ class AGISystemSTEM:
     def shutdown(self):
         print("Shutting down... Committing final governance audit batch.")
         commit_info = self.pipeline.finalize_session()
-        print(f"Audit Committed. Batch ID: {commit_info['batch_id']}")
+        print(
+            "Audit batch simulated only (not persisted). "
+            f"Simulation ID: {commit_info['batch_id']}"
+        )
         return commit_info
 
 def main():
