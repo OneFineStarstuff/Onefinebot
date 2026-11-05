@@ -56,6 +56,6 @@ class GovernanceOrchestrator:
 
     def finalize_audit(self):
         """
-        Commits audit batch to WORM storage.
+        Returns a local simulation summary; no WORM or durable storage occurs.
         """
         return self.worm.commit_batch()
