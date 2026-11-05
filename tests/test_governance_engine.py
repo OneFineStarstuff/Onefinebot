@@ -28,10 +28,20 @@ class TestGovernanceEngine(unittest.TestCase):
         event = logger.log_event("TEST_EVENT", {"key": "value"})
         self.assertIn("timestamp", event)
         self.assertEqual(event["event_type"], "TEST_EVENT")
+        self.assertEqual(
+            event["integrity_mode"],
+            "LOCAL_IN_MEMORY_SIMULATION_NO_WORM_OR_PQC",
+        )
 
-        commit = logger.commit_batch()
-        self.assertEqual(commit["size"], 1)
-        self.assertEqual(commit["status"], "COMMITTED")
+        summary = logger.commit_batch()
+        self.assertEqual(summary["size"], 1)
+        self.assertEqual(summary["status"], "SIMULATED_ONLY_NOT_PERSISTED")
+        self.assertEqual(
+            summary["integrity_mode"],
+            "LOCAL_IN_MEMORY_SIMULATION_NO_WORM_OR_PQC",
+        )
+        self.assertTrue(summary["batch_id"].startswith("sim-"))
+        self.assertEqual(len(summary["fingerprint_sha384"]), 96)
         self.assertEqual(len(logger.log_batch), 0)
 
     def test_governance_orchestrator(self):
@@ -41,8 +51,9 @@ class TestGovernanceEngine(unittest.TestCase):
         self.assertIn("heartbeat", audit)
         self.assertIn("fairness_proof", audit)
 
-        commit = orchestrator.finalize_audit()
-        self.assertEqual(commit["size"], 1)
+        summary = orchestrator.finalize_audit()
+        self.assertEqual(summary["size"], 1)
+        self.assertEqual(summary["status"], "SIMULATED_ONLY_NOT_PERSISTED")
 
 if __name__ == "__main__":
     unittest.main()
